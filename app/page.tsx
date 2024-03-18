@@ -96,13 +96,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
       await kv.get<AddressModel>(uniqueId);
 
     if (existingRequest) {
-      if (searchParams?.reset === "true") {
-        await kv.del(uniqueId);
-
-        frame = allowlistFrame;
-      } else {
-        frame = allowlistFrame
-      }
+      frame = allowlistFrame
     } else {
       await kv.set<AddressModel>(
         uniqueId,
