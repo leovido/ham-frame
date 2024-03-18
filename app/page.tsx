@@ -8,6 +8,12 @@ import {
   getPreviousFrame,
 } from "frames.js/next/server";
 import { AddressModel } from "./frames/types";
+import { Roboto } from 'next/font/google'
+
+const roboto = Roboto({
+  weight: '400',
+  subsets: ['latin'],
+})
 
 type State = {};
 
@@ -19,10 +25,6 @@ export default async function Home({ searchParams }: NextServerPageProps) {
   const frameMessage = await getFrameMessage(previousFrame.postBody);
 
   const signedUsers = await kv.dbsize()
-
-  if (frameMessage && !frameMessage?.isValid) {
-    throw new Error("Invalid frame payload");
-  }
 
   const key = `${frameMessage?.requesterFid}:${frameMessage?.requesterCustodyAddress || ''}`
   const isUserInList = await kv.get(key)
@@ -41,17 +43,17 @@ export default async function Home({ searchParams }: NextServerPageProps) {
           <>
             <div tw="flex flex-col">
               <div tw="flex">
-                <p style={{ color: "#F4D35E", fontSize: 50 }}>Opt-in for ham widget (iOS only)</p>
+                <p className={roboto.className} style={{ color: "#F4D35E", fontSize: 50 }}>{frameMessage ? "Opt-in for ham widget (iOS only)" : "Ham widget eligibility 🍖"}</p>
               </div>
               <div tw="flex">
-                <p style={{ color: "#F4D35E", fontSize: 50 }}>Limited to only {signedUsers}/100</p>
+                <p style={{ color: "#F4D35E", fontSize: 50 }}>{frameMessage ? `${95 - signedUsers} slots left!` : ""}</p>
               </div>
             </div>
           </>
         </div>
       </FrameImage>
-      <FrameButton>Next</FrameButton>
-    </FrameContainer>
+      <FrameButton>{frameMessage ? "Next" : "Check"}</FrameButton>
+    </FrameContainer >
   );
 
   const allowlistFrame = (
