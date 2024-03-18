@@ -1,7 +1,7 @@
 import { getFrameMessage } from "frames.js";
 import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
-import { RandomNumberRequestStateValue } from "./types";
+import { AddressModel } from "../../../frames/types";
 import { DEFAULT_DEBUGGER_HUB_URL } from "../../../debug";
 
 const MAXIMUM_KV_RESULT_LIFETIME_IN_SECONDS = 2 * 60; // 2 minutes
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     const randomNumber = Math.random();
 
-    await kv.set<RandomNumberRequestStateValue>(
+    await kv.set<AddressModel>(
       uniqueId,
       {
         data: randomNumber,
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().getTime(),
     });
   } catch (e) {
-    await kv.set<RandomNumberRequestStateValue>(
+    await kv.set<AddressModel>(
       uniqueId,
       {
         error: String(e),

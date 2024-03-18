@@ -7,171 +7,124 @@ import {
   getFrameMessage,
   getPreviousFrame,
 } from "frames.js/next/server";
-import Link from "next/link";
-import { RandomNumberRequestStateValue } from "./examples/slow-request/slow-fetch/types";
+import { AddressModel } from "./frames/types";
 import { currentURL } from "./utils";
-import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "./debug";
+import { DEFAULT_DEBUGGER_HUB_URL } from "./debug";
 
 type State = {};
 
 const initialState: State = {} as const;
 
-// This is a react server component only
 export default async function Home({ searchParams }: NextServerPageProps) {
-  const url = currentURL("/examples/slow-request");
   const previousFrame = getPreviousFrame<State>(searchParams);
 
   const frameMessage = await getFrameMessage(previousFrame.postBody, {
     hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
   });
 
+  const signedUsers = await kv.dbsize()
+
   if (frameMessage && !frameMessage?.isValid) {
     throw new Error("Invalid frame payload");
   }
 
+  const key = `${frameMessage?.requesterFid}:${frameMessage?.requesterCustodyAddress || ''}`
+  const isUserInList = await kv.get(key)
+
   let frame: React.ReactElement;
 
-  const intialFrame = (
+  const initialFrame = (
     <FrameContainer
-      postUrl="/examples/slow-request/frames"
-      pathname="/examples/slow-request"
-      state={initialState}
+      postUrl="/frames"
+      pathname="/"
+      state={{}}
       previousFrame={previousFrame}
     >
       <FrameImage>
-        <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-          This random number generator takes 10 seconds to respond
+        <div tw="flex flex-col justify-center items-center" style={{ backgroundColor: "#01153B", width: "100%", height: "100%", paddingLeft: 16, paddingRight: 16, textAlign: 'center', fontFamily: 'sans-serif', fontWeight: 500 }}>
+          <>
+            <div tw="flex flex-col">
+              <div tw="flex">
+                <p style={{ color: "#F4D35E", fontSize: 50 }}>Opt-in for ham widget (iOS only)</p>
+              </div>
+              <div tw="flex">
+                <p style={{ color: "#F4D35E", fontSize: 50 }}>Limited to only {signedUsers}/100</p>
+              </div>
+            </div>
+          </>
         </div>
       </FrameImage>
-      <FrameButton>Generate</FrameButton>
+      <FrameButton>Next</FrameButton>
     </FrameContainer>
   );
 
-  const checkStatusFrame = (
+  const allowlistFrame = (
     <FrameContainer
-      postUrl="/examples/slow-request/frames"
-      pathname="/examples/slow-request"
-      state={initialState}
+      postUrl="/frames"
+      pathname="/"
+      state={{}}
       previousFrame={previousFrame}
     >
       <FrameImage>
-        <div tw="w-full h-full bg-slate-700 text-white justify-center items-center">
-          Loading...
+        <div tw="flex flex-col" style={{ backgroundColor: "#01153B", width: "100%", height: "100%", paddingLeft: 16, paddingRight: 16, textAlign: 'center', fontFamily: 'sans-serif', fontWeight: 500 }}>
+          <>
+            <div tw="flex flex-col">
+              <div tw="flex">
+                <p style={{ color: "#F4D35E", fontSize: 50, textAlign: "center" }}>
+                  {`Address added to allowlist.`}
+                </p>
+              </div>
+              <div tw="flex">
+                <p style={{ color: "#F4D35E", fontSize: 50, textAlign: "center" }}>
+                  {frameMessage?.requesterCustodyAddress}
+                </p>
+              </div>
+            </div>
+          </>
         </div>
       </FrameImage>
-      <FrameButton>Check status</FrameButton>
-    </FrameContainer>
-  );
-
-  const errorFrame = (error: string) => (
-    <FrameContainer
-      postUrl="/examples/slow-request/frames"
-      pathname="/examples/slow-request"
-      state={initialState}
-      previousFrame={previousFrame}
-    >
-      <FrameImage>{error}</FrameImage>
-      <FrameButton target={"/examples/slow-request/frames?retry=true"}>
-        Retry
-      </FrameButton>
+      <FrameButton>Next</FrameButton>
     </FrameContainer>
   );
 
   if (frameMessage) {
-    const { requesterFid } = frameMessage;
+    const { requesterFid, requesterCustodyAddress } = frameMessage;
 
-    const uniqueId = `fid:${requesterFid}`;
+    const uniqueId = `${requesterFid}`;
 
     const existingRequest =
-      await kv.get<RandomNumberRequestStateValue>(uniqueId);
+      await kv.get<AddressModel>(uniqueId);
 
     if (existingRequest) {
-      switch (existingRequest.status) {
-        case "pending":
-          frame = checkStatusFrame;
-          break;
-        case "success":
-          // if retry is true, then try to generate again and show checkStatusFrame
-          if (searchParams?.reset === "true") {
-            // reset to initial state
-            await kv.del(uniqueId);
+      if (searchParams?.reset === "true") {
+        await kv.del(uniqueId);
 
-            frame = intialFrame;
-          } else {
-            frame = (
-              <FrameContainer
-                postUrl="/examples/slow-request/frames"
-                pathname="/examples/slow-request"
-                state={initialState}
-                previousFrame={previousFrame}
-              >
-                <FrameImage>
-                  <div tw="w-full h-full bg-slate-700 text-white justify-center items-center flex">
-                    The number is {existingRequest.data}
-                  </div>
-                </FrameImage>
-                <FrameButton
-                  target={"/examples/slow-request/frames?reset=true"}
-                >
-                  Reset
-                </FrameButton>
-              </FrameContainer>
-            );
-          }
-          break;
-        case "error":
-          // if retry is true, then try to generate again and show checkStatusFrame
-          if (searchParams?.retry === "true") {
-            // reset to initial state
-            await kv.del(uniqueId);
-
-            frame = intialFrame;
-          } else {
-            frame = errorFrame(existingRequest.error);
-          }
-          break;
+        frame = allowlistFrame;
+      } else {
+        frame = allowlistFrame
       }
     } else {
-      await kv.set<RandomNumberRequestStateValue>(
+      await kv.set<AddressModel>(
         uniqueId,
         {
-          status: "pending",
+          address: requesterCustodyAddress,
           timestamp: new Date().getTime(),
         },
-        // set as pending for one minute
         { ex: 60 }
       );
 
-      // start request, don't await it! Return a loading page, let this run in the background
-      fetch(
-        new URL(
-          "/examples/slow-request/slow-fetch",
-          process.env.NEXT_PUBLIC_HOST
-        ).toString(),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            postBody: JSON.parse(searchParams?.postBody as string),
-          }),
-        }
-      );
-
-      frame = checkStatusFrame;
+      frame = initialFrame;
     }
   } else {
-    frame = intialFrame;
+    if (isUserInList) {
+      frame = allowlistFrame
+    } else {
+      frame = initialFrame;
+    }
   }
 
-  // then, when done, return next frame
   return (
-    <div className="p-4">
-      frames.js starter kit with slow requests.{" "}
-      <Link href={createDebugUrl(url)} className="underline">
-        Debug
-      </Link>
+    <div>
       {frame}
     </div>
   );

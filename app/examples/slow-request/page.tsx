@@ -8,7 +8,7 @@ import {
   getPreviousFrame,
 } from "frames.js/next/server";
 import Link from "next/link";
-import { RandomNumberRequestStateValue } from "./slow-fetch/types";
+import { AddressModel } from "../../frames/types";
 import { currentURL } from "../../utils";
 import { DEFAULT_DEBUGGER_HUB_URL, createDebugUrl } from "../../debug";
 
@@ -83,7 +83,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
     const uniqueId = `fid:${requesterFid}`;
 
     const existingRequest =
-      await kv.get<RandomNumberRequestStateValue>(uniqueId);
+      await kv.get<AddressModel>(uniqueId);
 
     if (existingRequest) {
       switch (existingRequest.status) {
@@ -132,7 +132,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
           break;
       }
     } else {
-      await kv.set<RandomNumberRequestStateValue>(
+      await kv.set<AddressModel>(
         uniqueId,
         {
           status: "pending",
@@ -143,21 +143,21 @@ export default async function Home({ searchParams }: NextServerPageProps) {
       );
 
       // start request, don't await it! Return a loading page, let this run in the background
-      fetch(
-        new URL(
-          "/examples/slow-request/slow-fetch",
-          process.env.NEXT_PUBLIC_HOST
-        ).toString(),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            postBody: JSON.parse(searchParams?.postBody as string),
-          }),
-        }
-      );
+      // fetch(
+      //   new URL(
+      //     "/examples/slow-request/slow-fetch",
+      //     process.env.NEXT_PUBLIC_HOST
+      //   ).toString(),
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({
+      //       postBody: JSON.parse(searchParams?.postBody as string),
+      //     }),
+      //   }
+      // );
 
       frame = checkStatusFrame;
     }
