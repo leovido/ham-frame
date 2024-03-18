@@ -8,8 +8,6 @@ import {
   getPreviousFrame,
 } from "frames.js/next/server";
 import { AddressModel } from "./frames/types";
-import { currentURL } from "./utils";
-import { DEFAULT_DEBUGGER_HUB_URL } from "./debug";
 
 type State = {};
 
@@ -18,9 +16,7 @@ const initialState: State = {} as const;
 export default async function Home({ searchParams }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
 
-  const frameMessage = await getFrameMessage(previousFrame.postBody, {
-    hubHttpUrl: DEFAULT_DEBUGGER_HUB_URL,
-  });
+  const frameMessage = await getFrameMessage(previousFrame.postBody);
 
   const signedUsers = await kv.dbsize()
 
