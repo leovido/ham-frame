@@ -7,25 +7,14 @@ import {
   getFrameMessage,
   getPreviousFrame,
 } from "frames.js/next/server";
-import { AddressModel } from "./frames/types";
-import { Roboto } from 'next/font/google'
-
-const roboto = Roboto({
-  weight: '400',
-  subsets: ['latin'],
-})
 
 type State = {};
 
-const initialState: State = {} as const;
-
 export default async function Home({ searchParams }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
-
   const frameMessage = await getFrameMessage(previousFrame.postBody);
 
   const signedUsers = await kv.dbsize()
-
   const key = `${frameMessage?.requesterFid}:${frameMessage?.requesterCustodyAddress || ''}`
   const isUserInList = await kv.get(key)
 
@@ -43,7 +32,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
           <>
             <div tw="flex flex-col">
               <div tw="flex">
-                <p className={roboto.className} style={{ color: "#F4D35E", fontSize: 50 }}>{frameMessage ? "Opt-in for ham widget (iOS only)" : "Ham widget eligibility 🍖"}</p>
+                <p style={{ color: "#F4D35E", fontSize: 50 }}>{frameMessage ? "Opt-in for ham widget (iOS only)" : "Ham widget eligibility 🍖"}</p>
               </div>
               <div tw="flex">
                 <p style={{ color: "#F4D35E", fontSize: 50 }}>{frameMessage ? `${95 - signedUsers} slots left!` : ""}</p>
@@ -81,7 +70,8 @@ export default async function Home({ searchParams }: NextServerPageProps) {
           </>
         </div>
       </FrameImage>
-      <FrameButton>Next</FrameButton>
+      <FrameButton action="post_redirect">Install iOS widget</FrameButton>
+      <FrameButton>Done</FrameButton>
     </FrameContainer>
   );
 
@@ -91,19 +81,12 @@ export default async function Home({ searchParams }: NextServerPageProps) {
     const uniqueId = `${requesterFid}`;
 
     const existingRequest =
-      await kv.get<AddressModel>(uniqueId);
+      await kv.get(requesterCustodyAddress);
 
     if (existingRequest) {
       frame = allowlistFrame
     } else {
-      await kv.set<AddressModel>(
-        uniqueId,
-        {
-          address: requesterCustodyAddress,
-          timestamp: new Date().getTime(),
-        },
-        { ex: 60 }
-      );
+      await kv.set(requesterCustodyAddress, uniqueId)
 
       frame = initialFrame;
     }
