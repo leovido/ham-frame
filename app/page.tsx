@@ -62,7 +62,7 @@ export default async function Home({ searchParams }: NextServerPageProps) {
                 </p>
               </div>
               <div tw="flex">
-                <p style={{ color: "#F4D35E", fontSize: 50, textAlign: "center" }}>
+                <p style={{ color: "#F4D35E", fontSize: '80vw', textAlign: "center" }}>
                   {frameMessage?.requesterCustodyAddress.toLowerCase()}
                 </p>
               </div>
