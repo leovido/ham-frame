@@ -53,21 +53,17 @@ export default async function Home({ searchParams }: NextServerPageProps) {
       previousFrame={previousFrame}
     >
       <FrameImage>
-        <div tw="flex flex-col" style={{ backgroundColor: "#01153B", width: "100%", height: "100%", paddingLeft: 16, paddingRight: 16, textAlign: 'center', fontFamily: 'sans-serif', fontWeight: 500 }}>
-          <>
-            <div tw="flex flex-col">
-              <div tw="flex">
-                <p style={{ color: "#F4D35E", fontSize: 50, textAlign: "center" }}>
-                  {`Address added to allowlist.`}
-                </p>
-              </div>
-              <div tw="flex">
-                <p style={{ color: "#F4D35E", fontSize: '80vw', textAlign: "center" }}>
-                  {frameMessage?.requesterCustodyAddress.toLowerCase()}
-                </p>
-              </div>
-            </div>
-          </>
+        <div tw="flex flex-col h-full w-full" style={{ backgroundColor: "#01153B", fontFamily: 'sans-serif', fontWeight: 500 }}>
+          <div tw="flex flex-col items-center justify-center">
+            <p style={{ color: "#F4D35E", fontSize: 50 }}>
+              {`You're in. Address added to allowlist.`}
+            </p>
+          </div>
+          <div tw="flex flex-col items-center justify-center">
+            <p style={{ color: "#F4D35E", fontSize: '50' }}>
+              {`${frameMessage?.requesterCustodyAddress.toLowerCase().slice(0, 5)}...${frameMessage?.requesterCustodyAddress.slice(-4)}`}
+            </p>
+          </div>
         </div>
       </FrameImage>
       <FrameButton action="post_redirect">Install iOS widget</FrameButton>
