@@ -8,10 +8,7 @@ import {
   getPreviousFrame,
 } from "frames.js/next/server";
 
-type State = {
-  endDate: string;
-  winner: string;
-};
+type State = {};
 
 export default async function Home({ searchParams }: NextServerPageProps) {
   const previousFrame = getPreviousFrame<State>(searchParams);
