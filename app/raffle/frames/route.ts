@@ -64,7 +64,12 @@ export async function POST(req: NextRequest) {
 
   const response = await zdk.mints(args)
 
+  const imageURLTrimmed = response.mints.nodes.map((node) => {
+    return node.token?.image?.url?.replace("ipfs://", "") ?? ""
+  })
+
   const addresses = response.mints.nodes.map((node) => {
+
     return node.mint.toAddress
   });
   var winner = addresses[Math.floor(Math.random() * addresses.length)];
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest) {
           <head>
               <title>Raffle</title>
               <meta property="fc:frame" content="vNext" />
-              <meta property="fc:frame:image" content="https://remote-image.decentralized-content.com/image?url=https%3A%2F%2Fipfs.decentralized-content.com%2Fipfs%2Fbafybeihod7ajntqhyibybkgnrlmgifhcjar45ra3ct4jimfmaokpokz5zu&w=1080&q=75" />
+              <meta property="fc:frame:image" content="https://remote-image.decentralized-content.com/image?url=https%3A%2F%2Fipfs.decentralized-content.com%2Fipfs%2F${imageURLTrimmed[0]}&w=1920&q=75" />
               <meta property="fc:frame:button:1" content="${winner}" />
               <meta property="fc:frame:button:1:action" content="post_redirect" />
               <meta property="fc:frame:post_url" content="${process.env.BASE_URL}/api/end" />
@@ -92,7 +97,7 @@ export async function POST(req: NextRequest) {
           <head>
               <title>Ham widget - iOS opt-in</title>
               <meta property="fc:frame" content="vNext" />
-              <meta property="fc:frame:image" content="https://remote-image.decentralized-content.com/image?url=https%3A%2F%2Fipfs.decentralized-content.com%2Fipfs%2Fbafybeihod7ajntqhyibybkgnrlmgifhcjar45ra3ct4jimfmaokpokz5zu&w=1080&q=75" />
+              <meta property="fc:frame:image" content="https://remote-image.decentralized-content.com/image?url=https%3A%2F%2Fipfs.decentralized-content.com%2Fipfs%2F${imageURLTrimmed}&w=1920&q=75" />
               <meta property="fc:frame:button:1" content="Visit dividoge.com" />
               <meta property="fc:frame:button:1:action" content="post_redirect" />
               <meta property="fc:frame:button:2" content="Share in /lp" />
