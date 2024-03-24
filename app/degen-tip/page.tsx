@@ -77,7 +77,8 @@ export default async function Home({ searchParams }: NextServerPageProps) {
           </div>
         </FrameImage>
       }
-      <FrameButton>{frameMessage ? "Check" : "Ok"}</FrameButton>
+      <FrameInput text="e.g. 02/24/2024 09:00 UTC"></FrameInput>
+      <FrameButton>{"Check"}</FrameButton>
     </FrameContainer >
   );
 
